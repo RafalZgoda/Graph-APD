@@ -1,0 +1,24 @@
+graph {
+	canvas-color: white;
+}
+node {
+	shape: circle;
+	size-mode: dyn-size;
+	size: 17px;
+	fill-mode: gradient-radial;
+	fill-color: #4775d1;
+	stroke-mode: none;
+	shadow-mode: gradient-radial;
+	shadow-color: #FFF5, #FFF0;
+	shadow-width: 5px;
+	shadow-offset: 0px, 0px;
+	text-color:red; 
+ 	text-padding: 30px; 
+}
+edge {
+	shape: L-square-line;
+	size: 1px;
+	fill-color:  #6b6b47;
+	fill-mode: plain;
+	arrow-shape: none;
+}
