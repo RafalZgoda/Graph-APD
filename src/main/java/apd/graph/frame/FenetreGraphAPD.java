@@ -101,7 +101,6 @@ public class FenetreGraphAPD extends JFrame {
 	        openMi.addActionListener((ActionEvent event) -> {
 	        	JFileChooser chooser = new JFileChooser();
 	        	chooser.setApproveButtonText("Choix du fichier..."); 
-	        	chooser.showOpenDialog(null); 
 	        	if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
 	            {	
 	   
