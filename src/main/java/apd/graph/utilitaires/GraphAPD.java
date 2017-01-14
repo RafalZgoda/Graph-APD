@@ -1,5 +1,6 @@
 package apd.graph.utilitaires;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -13,6 +14,8 @@ import java.util.regex.Pattern;
 
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.ui.spriteManager.Sprite;
+import org.graphstream.ui.spriteManager.SpriteManager;
 
 public class GraphAPD {
 	
@@ -85,7 +88,7 @@ public class GraphAPD {
 			    	key2=Integer.toString((int)i.next());
 			    	if (graph.getNode(key2) == null)	
 					    	this.graph.addNode(key2).addAttribute("ui.label", key2);;
-			    	this.graph.addEdge(key+""+key2, key, key2);
+			    	this.graph.addEdge(key+"-"+key2, key, key2);
 			    }
 			}
 			
@@ -106,10 +109,34 @@ public class GraphAPD {
 		this.graph.display();
 	}
 	
-	public static void main(String[] args)
+	public static void main(String[] args) throws InterruptedException
 	{
 		GraphAPD g = new GraphAPD("aim-100-1_6-no-1.cnf");
+		SpriteManager sman = new SpriteManager(g.graph);
+		Sprite s = sman.addSprite("S1");
+
+		/*for(Edge e:g.graph.getEachEdge()) {
+	        System.out.println(e.getId());
+	    }*/
+		s.attachToEdge("1-2");
+		
 		g.afficherGraph();
+		
+		Thread.sleep(2000);
+		
+		g.getGraph().getEdge("1-2").addAttribute("ui-color", Color.RED);
+		for(double i=0.1;i<1.0;i+=0.1)
+		{
+			s.setPosition(i);
+			Thread.sleep(50);
+		}
+		/*for(double i=1;i>0;i-=0.1)
+		{
+			s.setPosition(i);
+			Thread.sleep(50);
+		}*/
+		
+		
 	}
 	
 	public Graph getGraph()
