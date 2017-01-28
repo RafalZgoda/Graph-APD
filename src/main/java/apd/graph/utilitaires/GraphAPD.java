@@ -3,145 +3,171 @@ package apd.graph.utilitaires;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.spriteManager.Sprite;
 import org.graphstream.ui.spriteManager.SpriteManager;
+import org.graphstream.ui.view.Viewer;
 
 public class GraphAPD {
-	
-	private Graph graph;
-	
-	public GraphAPD(String nomFichier)
-	{
-		this.graph = new SingleGraph("Graph");
-		
+
+	public static Graph graph=new SingleGraph("Graph");;
+
+	public GraphAPD(String nomFichier) {
+
 		// CSS du Graph
-		graph.addAttribute("ui.stylesheet","url('file:///"+System.getProperty("user.dir")+"/files/stylesheet')");
 		graph.addAttribute("ui.quality");
 		graph.addAttribute("ui.antialias");
-        //graph.addAttribute("ui.stylesheet", "edge { fill-color: grey; }" );
-		
-        initGraph(nomFichier);
+		graph.addAttribute("ui.stylesheet", "url('file:///" + System.getProperty("user.dir") + "/files/stylesheet')");
+		// graph.addAttribute("ui.stylesheet", "edge { fill-color: grey; }" );
+
+		initGraph(nomFichier);
 
 	}
-	
+
 	/***
 	 * 
 	 * @param nomFichier
-	 * @return true or false selon si le programme réussi à initialiser le graph ou non.
+	 * @return true or false selon si le programme r\u00e9ussi \u00e0
+	 *         initialiser le graph ou non.
 	 */
-	public boolean initGraph(String nomFichier)
-	{
-		try(BufferedReader in = new BufferedReader(new FileReader("files/"+nomFichier))) {
-			final Map<Integer,Set<Integer>> graphMap = new LinkedHashMap<Integer,Set<Integer>>();
+	public boolean initGraph(String nomFichier) {
+		try {
 
-			
+			BufferedReader in = new BufferedReader(new FileReader("files/" + nomFichier));
+
 			int vertices = -1;
+			int edges = -1;
 			final Pattern p = Pattern.compile("p\\s+edge\\s+(\\d+)\\s+(\\d+)\\s*");
 			final Matcher mp = p.matcher("");
-			for(String line = in.readLine(); line != null; line = in.readLine()) { 
+			for (String line = in.readLine(); line != null; line = in.readLine()) {
 				mp.reset(line);
-				if(mp.matches()) { 
+				if (mp.matches()) {
 					vertices = Integer.parseInt(mp.group(1));
+					edges = Integer.parseInt(mp.group(2));
 					break;
-				} 
+				}
 			}
-			if (vertices<0) throw new Exception("Ligne incorrecte ");
-			for(int i = 0; i < vertices; i++) { 
-				graphMap.put(i+1, new LinkedHashSet<Integer>(4));
+
+			if (vertices <= 0)
+				throw new Exception("nombre de noeuds inf\u00e9rieur \u00e0 0 ");
+			if (edges <= 0)
+				throw new Exception("nombre d'arr\u00e8te inf\u00e9rieur \u00e0 0 ");
+
+			// int graphTab[][]= new int[vertices+1][edges+1];
+			String tmp, tmp2;
+
+			for (int i = 0; i < vertices; i++) {
+				tmp = Integer.toString(i + 1);
+				graph.addNode(tmp).addAttribute("ui.label", tmp);
 			}
-			
+
 			final Pattern e = Pattern.compile("e\\s+(\\d+)\\s+(\\d+)\\s*");
 			final Matcher me = e.matcher("");
-			
-			for(String line = in.readLine(); line != null; line = in.readLine()) { 
-				me.reset(line);
-				if(me.matches()) { 
-					final int from = Integer.parseInt(me.group(1)), to = Integer.parseInt(me.group(2));
-					if (!graphMap.containsKey(from)) throw new Exception("Mauvaise arrete: " + from + " in " + line);
-					if (!graphMap.containsKey(to)) throw new Exception("Mauvase arrete: " + to + " in " + line);
-					graphMap.get(from).add(to); 
-					
-				} 			
-			}
-			
-			
-			for (Map.Entry<Integer, Set<Integer>> entry : graphMap.entrySet()) {
-			    String key = Integer.toString(entry.getKey());
-			    Set<Integer> values = entry.getValue();
-			    if (graph.getNode(key) == null)	
-			    	this.graph.addNode(key).addAttribute("ui.label", key);
-			    Iterator i=values.iterator();
-			    String key2;
-			    while(i.hasNext())
-			    {
-			    	key2=Integer.toString((int)i.next());
-			    	if (graph.getNode(key2) == null)	
-					    	this.graph.addNode(key2).addAttribute("ui.label", key2);;
-			    	this.graph.addEdge(key+"-"+key2, key, key2);
-			    }
-			}
-			
-			return true;
-		} catch (IOException e) {
-			System.out.println("Mauvais fichier: " + nomFichier);
-			return false;
-			}
-		 catch(Exception e)
-		{
-			 System.out.println("Le format DIMACS n'est pas respecté  "+e);
-			return true;
-		}
-	}
-	
-	public void afficherGraph()
-	{
-		this.graph.display();
-	}
-	
-	public static void main(String[] args) throws InterruptedException
-	{
-		GraphAPD g = new GraphAPD("aim-100-1_6-no-1.cnf");
-		SpriteManager sman = new SpriteManager(g.graph);
-		Sprite s = sman.addSprite("S1");
+			int from, to;
+			Node node;
 
-		/*for(Edge e:g.graph.getEachEdge()) {
-	        System.out.println(e.getId());
-	    }*/
-		s.attachToEdge("1-2");
-		
-		g.afficherGraph();
-		
-		Thread.sleep(2000);
-		
-		g.getGraph().getEdge("1-2").addAttribute("ui-color", Color.RED);
-		for(double i=0.1;i<1.0;i+=0.1)
-		{
-			s.setPosition(i);
-			Thread.sleep(50);
+			ArrayList<Integer> voisins;
+			for (String line = in.readLine(); line != null; line = in.readLine()) {
+				me.reset(line);
+				if (me.matches()) {
+					from = Integer.parseInt(me.group(1));
+					to = Integer.parseInt(me.group(2));
+					System.out.println("from : "+from+" to: "+to);
+					if (from == 0 || from > vertices)
+						throw new Exception("Mauvaise arrete: " + from + " in " + line);
+					if (to == 0 || to > vertices)
+						throw new Exception("Mauvase arrete: " + to + " in " + line);
+
+					node = graph.getNode(from-1);
+					if (node.hasAttribute("voisins")) {
+						voisins = (ArrayList<Integer>)node.getAttribute("voisins");
+						voisins.add(to-1);
+						node.setAttribute("voisins", voisins);
+					} else {
+						node.addAttribute("voisins", Arrays.asList(to-1));
+					}
+					graph.addEdge(from + "-" + to, from-1, to-1);
+				}
+			}
+
+			return true;
+		} catch (Exception e) {
+			System.err.format("Erreur lecture fichier ");
+			e.printStackTrace();
+			return false;
 		}
-		/*for(double i=1;i>0;i-=0.1)
-		{
+	}
+
+	public Viewer getViewer() {
+		Viewer viewer = graph.display();
+		return viewer;
+	}
+
+	public void animation(String arrete) throws InterruptedException {
+		SpriteManager sman = new SpriteManager(graph);
+		Sprite s = sman.addSprite(arrete);
+		s.addAttribute("shape", "box");
+
+		s.attachToEdge(arrete);
+		graph.getEdge(arrete).addAttribute("ui-color", Color.RED);
+		for (double i = 0.1; i < 1.0; i += 0.1) {
 			s.setPosition(i);
+			sleep();
+		}
+	}
+
+	protected void sleep() {
+		try {
 			Thread.sleep(50);
+		} catch (Exception e) {
+		}
+	}
+
+	public Graph getGraph() {
+		return graph;
+	}
+
+	public static void main(String[] args) throws InterruptedException {
+
+		
+
+		/*SpriteManager sman = new SpriteManager(g.getGraph());
+		Sprite s = sman.addSprite("1-2");
+		s.addAttribute("shape", "box");
+
+		s.attachToEdge("1-2");
+		g.getGraph().getEdge("1-2").addAttribute("ui-color", Color.RED);
+		for (double i = 0.1; i < 1.0; i += 0.1) {
+			s.setPosition(i);
+			System.out.println("c fait");
+			Thread.sleep(1000);
 		}*/
 		
-		
-	}
+		try
+		{
 	
-	public Graph getGraph()
-	{
-		return graph;
+				GraphAPD g = new GraphAPD("anneau.cnf");
+				
+				Algorithm a = new ChangRobertsAlgorithm(g);
+				a.start(args);
+				g.getGraph().display();
+		
+			
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			System.out.println("errror");
+		}
+			
+
 	}
 
 }
