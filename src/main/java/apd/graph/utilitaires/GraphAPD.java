@@ -79,24 +79,25 @@ public class GraphAPD {
 				if (me.matches()) {
 					from = Integer.parseInt(me.group(1));
 					to = Integer.parseInt(me.group(2));
-					System.out.println("from : "+from+" to: "+to);
+					//System.out.println("from : "+from+" to: "+to);
 					if (from == 0 || from > vertices)
 						throw new Exception("Mauvaise arrete: " + from + " in " + line);
 					if (to == 0 || to > vertices)
 						throw new Exception("Mauvase arrete: " + to + " in " + line);
 
-					node = graph.getNode(from-1);
+					/*node = graph.getNode(from-1);
 					if (node.hasAttribute("voisins")) {
-						voisins = (ArrayList<Integer>)node.getAttribute("voisins");
+						voisins = (ArrayList<Integer>) node.getAttribute("voisins", ArrayList.class);
 						voisins.add(to-1);
 						node.setAttribute("voisins", voisins);
 					} else {
-						node.addAttribute("voisins", Arrays.asList(to-1));
-					}
+						voisins=new ArrayList<Integer>();
+						voisins.add(to-1);
+						node.addAttribute("voisins", voisins);
+					}*/
 					graph.addEdge(from + "-" + to, from-1, to-1);
 				}
 			}
-
 			return true;
 		} catch (Exception e) {
 			System.err.format("Erreur lecture fichier ");
@@ -136,28 +137,14 @@ public class GraphAPD {
 
 	public static void main(String[] args) throws InterruptedException {
 
-		
-
-		/*SpriteManager sman = new SpriteManager(g.getGraph());
-		Sprite s = sman.addSprite("1-2");
-		s.addAttribute("shape", "box");
-
-		s.attachToEdge("1-2");
-		g.getGraph().getEdge("1-2").addAttribute("ui-color", Color.RED);
-		for (double i = 0.1; i < 1.0; i += 0.1) {
-			s.setPosition(i);
-			System.out.println("c fait");
-			Thread.sleep(1000);
-		}*/
-		
 		try
 		{
 	
-				GraphAPD g = new GraphAPD("anneau.cnf");
-				
+				//GraphAPD g = new GraphAPD("aim-100-1_6-no-1.cnf");
+			GraphAPD g = new GraphAPD("anneau.cnf");
 				Algorithm a = new ChangRobertsAlgorithm(g);
 				a.start(args);
-				g.getGraph().display();
+				//g.getGraph().display();
 		
 			
 		}
