@@ -1,4 +1,4 @@
-
+package apd.graph.utilitaires;
 import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.*;
 import java.io.BufferedReader;
@@ -19,13 +19,13 @@ public class Constructor {
 			@SuppressWarnings("resource")
 			BufferedReader reader = new BufferedReader(new FileReader(System.getProperty("user.dir")+"/files/aim-100-1_6-no-1.cnf"));
 			String line;
-			/* Boucle sur chaque ligne qui regarde le premier caractère (si le premier char est c, ignore la ligne */
+			/* Boucle sur chaque ligne qui regarde le premier caractï¿½re (si le premier char est c, ignore la ligne */
 			while ((line = reader.readLine()) != null) {
 				if (line.length() >= 1) {
 					char first = line.charAt(0);
 					if (first == 'c') {
 						System.out.println("Commentaire");
-						/* Parcourt les caractères suivants pour recupérés les deux noeuds*/
+						/* Parcourt les caractï¿½res suivants pour recupï¿½rï¿½s les deux noeuds*/
 					} else if (first == 'e') {
 						int i = 1;
 						boolean token = true;
@@ -68,16 +68,16 @@ public class Constructor {
 							} else
 								token = false;
 						}
-						/* Fin du parcours de la ligne, création des deux sommets (si il n'existe pas) et de l'arrete */ 
+						/* Fin du parcours de la ligne, crï¿½ation des deux sommets (si il n'existe pas) et de l'arrete */ 
 						System.out.println(node1 + " " + node2);
 						if (graph.getNode(node1) != null) {
-							System.out.println("Déja existant");
+							System.out.println("Dï¿½ja existant");
 						} else {
 							graph.addNode(node1).addAttribute("ui.label", node1);
 
 						}
 						if (graph.getNode(node2) != null) {
-							System.out.println("Déja existant");
+							System.out.println("Dï¿½ja existant");
 						} else {
 							graph.addNode(node2).addAttribute("ui.label", node2);
 						}
