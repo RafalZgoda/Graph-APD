@@ -30,9 +30,9 @@ public class DFS1Algorithm implements Serializable{
 		}
 	}
 	
-	public void readDimacs(String fileName) throws Exception
+	public void readDimacs(String fileName)
 	{
-
+		try {
 			BufferedReader in = new BufferedReader(new FileReader("files/" + fileName));
 
 			int vertices = -1;
@@ -47,22 +47,18 @@ public class DFS1Algorithm implements Serializable{
 					break;
 				}
 			}
-
+			
 			if (vertices <= 0)
 				throw new Exception("nombre de noeuds inferieur a 0 ");
 			if (edges <= 0)
 				throw new Exception("nombre d'arette inferieur a 0 ");
 
 			matrixGraph=new int[vertices][vertices];
-			String tmp, tmp2;
-
 
 			final Pattern e = Pattern.compile("e\\s+(\\d+)\\s+(\\d+)\\s*");
 			final Matcher me = e.matcher("");
 			int from, to;
-			Node node;
 
-			List<Integer> voisins;
 			for (String line = in.readLine(); line != null; line = in.readLine()) {
 				me.reset(line);
 				if (me.matches()) {
@@ -79,6 +75,11 @@ public class DFS1Algorithm implements Serializable{
 					
 				}
 			}
+			in.close();
+		} catch (Exception e) {
+			System.out.println("Une erreur s'est produite dans la lecture du fichier cnf");
+			e.printStackTrace();
+		}
 	}
 	
 	public void afficheGraph()
@@ -98,12 +99,6 @@ public class DFS1Algorithm implements Serializable{
 	
 	public void visite(int rank,int parent)
 	{
-		/*System.out.println("Visite de rank : "+rank+" avec voisins [");
-		for(Integer i : voisins)
-		{
-			System.out.print(i+",");
-		}
-		System.out.println("]");*/
 		
 		char[] message;
 		if(!voisins.isEmpty())
@@ -136,12 +131,6 @@ public class DFS1Algorithm implements Serializable{
 			System.out.println(rank+" a recu DFS1 de "+source);
 			if(marque)
 			{
-				/*System.out.println("je suis dejà marqué, voici mes voisins : [");
-				for(Integer i : voisins)
-				{
-					System.out.print(i+",");
-				}
-				System.out.println("]");*/
 				voisins.remove((Integer) source);
 				char[] msg="back".toCharArray();
 				MPI.COMM_WORLD.Send(msg, 0, 4, MPI.CHAR, source , 0);
@@ -172,27 +161,40 @@ public class DFS1Algorithm implements Serializable{
 		int size = MPI.COMM_WORLD.Size();
 		char[] message="null".toCharArray();
 		int root=0;
-		
 		DFS1Algorithm t = new DFS1Algorithm();
-		try
+		boolean[] paramsOK={true};
+		if(rank==root)
 		{
-			t.readDimacs("aim-100-1_6-no-1.cnf");
-		}
-		catch(Exception e)
-		{
-			System.out.println("une erreur s'est produite dans la lecture du fichier cnf");
-			e.printStackTrace();
+			if(args.length==4)
+			{
+				t.readDimacs(args[3]);
+				if(t.matrixGraph.length!=Integer.parseInt(args[1]))
+					paramsOK[0]=false;
+			}
+			else
+				paramsOK[0]=false;
 		}
 		
+		MPI.COMM_WORLD.Bcast(paramsOK, 0, 1, MPI.BOOLEAN, 0);
+		if(!paramsOK[0])
+		{
+			if (rank == 0) 
+				System.out.println("Les arguments fournis sont incorrects ou incomplets (le nombre de processus doit être égale au nombre de noeuds du graphe)");
+			
+			MPI.Finalize();
+			System.exit(-1);
+		}
+	
+		t.readDimacs(args[3]);
 		t.initVoisins(rank);
 		int nbVoisins = t.voisins.size();
 		Status s;
 		if(rank==0)
 		{
-			t.afficheGraph();
+			t.afficheGraph(); // Simple affichage de la matrice
 		}
 		MPI.COMM_WORLD.Barrier();
-
+		
 		if(root==rank)
 		{
 			t.marque=true;
@@ -215,7 +217,7 @@ public class DFS1Algorithm implements Serializable{
 						
 			
 		}
-		MPI.COMM_WORLD.Barrier();
+
 		MPI.Finalize();      
 	}
 }

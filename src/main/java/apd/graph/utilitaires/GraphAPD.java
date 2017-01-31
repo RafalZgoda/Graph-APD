@@ -3,11 +3,12 @@ package apd.graph.utilitaires;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
@@ -15,13 +16,16 @@ import org.graphstream.ui.spriteManager.Sprite;
 import org.graphstream.ui.spriteManager.SpriteManager;
 import org.graphstream.ui.view.Viewer;
 
+import mpi.MPI;
+
 public class GraphAPD {
 
-	public static Graph graph=new SingleGraph("Graph");;
+	private Graph graph;
 
 	public GraphAPD(String nomFichier) {
 
 		// CSS du Graph
+		graph=new SingleGraph("Graph");;
 		graph.addAttribute("ui.quality");
 		graph.addAttribute("ui.antialias");
 		graph.addAttribute("ui.stylesheet", "url('file:///" + System.getProperty("user.dir") + "/files/stylesheet')");
@@ -37,7 +41,7 @@ public class GraphAPD {
 	 * @return true or false selon si le programme r\u00e9ussi \u00e0
 	 *         initialiser le graph ou non.
 	 */
-	public boolean initGraph(String nomFichier) {
+	public void initGraph(String nomFichier) {
 		try {
 
 			BufferedReader in = new BufferedReader(new FileReader("files/" + nomFichier));
@@ -60,12 +64,11 @@ public class GraphAPD {
 			if (edges <= 0)
 				throw new Exception("nombre d'arr\u00e8te inf\u00e9rieur \u00e0 0 ");
 
-			// int graphTab[][]= new int[vertices+1][edges+1];
-			String tmp, tmp2;
+			String tmp;
 
 			for (int i = 0; i < vertices; i++) {
-				tmp = Integer.toString(i + 1);
-				graph.addNode(tmp).addAttribute("ui.label", tmp);
+				tmp = Integer.toString(i);
+				graph.addNode(tmp);
 			}
 
 			final Pattern e = Pattern.compile("e\\s+(\\d+)\\s+(\\d+)\\s*");
@@ -73,36 +76,28 @@ public class GraphAPD {
 			int from, to;
 			Node node;
 
-			ArrayList<Integer> voisins;
 			for (String line = in.readLine(); line != null; line = in.readLine()) {
 				me.reset(line);
 				if (me.matches()) {
 					from = Integer.parseInt(me.group(1));
 					to = Integer.parseInt(me.group(2));
-					//System.out.println("from : "+from+" to: "+to);
+					
 					if (from == 0 || from > vertices)
 						throw new Exception("Mauvaise arrete: " + from + " in " + line);
 					if (to == 0 || to > vertices)
 						throw new Exception("Mauvase arrete: " + to + " in " + line);
 
-					/*node = graph.getNode(from-1);
-					if (node.hasAttribute("voisins")) {
-						voisins = (ArrayList<Integer>) node.getAttribute("voisins", ArrayList.class);
-						voisins.add(to-1);
-						node.setAttribute("voisins", voisins);
-					} else {
-						voisins=new ArrayList<Integer>();
-						voisins.add(to-1);
-						node.addAttribute("voisins", voisins);
-					}*/
-					graph.addEdge(from + "-" + to, from-1, to-1);
+					node = graph.getNode(from-1);
+				    node.addAttribute("ui.label", from);
+					from=from-1;
+					to=to-1;
+					graph.addEdge(from + "-" + to, from, to);
 				}
 			}
-			return true;
+
 		} catch (Exception e) {
 			System.err.format("Erreur lecture fichier ");
 			e.printStackTrace();
-			return false;
 		}
 	}
 
@@ -135,26 +130,65 @@ public class GraphAPD {
 		return graph;
 	}
 
-	public static void main(String[] args) throws InterruptedException {
+	/*public static void main(String[] args) throws InterruptedException {
 
 		try
 		{
-	
-				//GraphAPD g = new GraphAPD("aim-100-1_6-no-1.cnf");
-			GraphAPD g = new GraphAPD("anneau.cnf");
-				Algorithm a = new ChangRobertsAlgorithm(g);
+			
+			MPI.Init(args);
+			int rank = MPI.COMM_WORLD.Rank();
+			int size = MPI.COMM_WORLD.Size();
+			
+			GraphAPD g;
+			boolean[] paramsOK={true};
+			if(rank==0)
+			{
+				if(args.length==4)
+				{
+					g = new GraphAPD(args[3]);
+					if(g!=null && Integer.parseInt(args[1])!=g.graph.getNodeCount())
+					{
+						paramsOK[0]=false;
+						//System.out.println("Les arguments fournis sont incorrects ou incomplets (le nombre de processus doit être égale au nombre de noeuds du graphe)");
+						//System.exit(-1);
+					}
+				}
+				else
+					paramsOK[0]=false;
+				
+				
+			}
+			
+			MPI.COMM_WORLD.Bcast(paramsOK, 0, 1, MPI.BOOLEAN, 0);
+			
+			if(paramsOK[0])
+			{
+				g = new GraphAPD(args[3]);
+				if(0==rank)
+					g.graph.display();
+				Algorithm a = new EveilDistribueAlgorithm(g);
 				a.start(args);
-				//g.getGraph().display();
-		
+					
+			}
+			else
+			{
+				if (rank == 0) 
+					System.out.println("Les arguments fournis sont incorrects ou incomplets (le nombre de processus doit être égale au nombre de noeuds du graphe)");
+				
+				MPI.Finalize();
+				System.exit(-1);
+			}
+			
+			
 			
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
-			System.out.println("errror");
+			System.out.println("Une erreur s'est produite: vérifiez le nom du fichier .cnf ou le nombre de processus");
 		}
 			
 
-	}
+	}*/
 
 }

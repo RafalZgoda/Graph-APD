@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -19,14 +20,15 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JRadioButtonMenuItem;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 import org.graphstream.graph.Graph;
 import org.graphstream.ui.view.View;
 import org.graphstream.ui.view.Viewer;
 
 import apd.graph.utilitaires.Algorithm;
-import apd.graph.utilitaires.ChangRobertsAlgorithm;
+import apd.graph.utilitaires.EveilDistribueAlgorithm;
 import apd.graph.utilitaires.GraphAPD;
 import mpi.MPI;
 
@@ -58,9 +60,13 @@ public class FenetreGraphAPD extends JFrame {
 	        ImageIcon iconOpen = new ImageIcon("open.png");
 
 	        JMenu fileMenu = new JMenu("File");
-	        JButton algos = new JButton("Algorithms");
-	        JButton start = new JButton("Start");
-	        JButton clear = new JButton("Clear");
+	        //JButton algos = new JButton("Algorithms");
+	        //JButton start = new JButton("Start");
+	        //JButton clear = new JButton("Clear");
+	        JMenu algos = new JMenu("Algorithms");
+	        JMenu initiators = new JMenu("Initiators");
+	        JMenu start = new JMenu("Start");
+	        JMenu clear = new JMenu("Clear");
 	        JMenuItem openMi = new JMenuItem("Open", iconOpen);
 	        
 
@@ -73,6 +79,7 @@ public class FenetreGraphAPD extends JFrame {
 	        
 	        menubar.add(fileMenu);
 	        menubar.add(algos);
+	        menubar.add(initiators);
 	        menubar.add(start);
 	        menubar.add(Box.createHorizontalGlue());
 	        menubar.add(clear);
@@ -89,7 +96,7 @@ public class FenetreGraphAPD extends JFrame {
 	       
             
 	       exMi.addActionListener((ActionEvent event) -> {
-	        	this.nameFile="anneau.cnf";
+	        	this.nameFile="aim-100-1_6-no-1.cnf";
 	        	this.graphAPD = new GraphAPD(nameFile);
 	        	final Graph g = this.graphAPD.getGraph();
 
@@ -124,22 +131,35 @@ public class FenetreGraphAPD extends JFrame {
 	        	}
 	        });
 	        
-	        start.addActionListener((ActionEvent event) -> {
-	        	System.out.println("Start....");
-	        	try
-	    		{
-	        		
-	    			Algorithm a = new ChangRobertsAlgorithm(this.graphAPD);
-	    			a.start(args);
-	    			
-	    		}
-	    		catch(Exception e)
-	    		{
-	    			e.printStackTrace();
-	    			System.out.println("errror");
-	    		}
+	        	
+	        //start.addMenuListener(new SampleMenuListener());
+	        start.addMenuListener(new MenuListener() {
+
+	            @Override
+	            public void menuSelected(MenuEvent e) {
+	            	
+					try {
+						Algorithm a = new EveilDistribueAlgorithm(FenetreGraphAPD.this.graphAPD);
+						a.start(args);
+					} catch (InterruptedException e1) {
+						
+						e1.printStackTrace();
+					}
+
+	            }
+
+	            @Override
+	            public void menuDeselected(MenuEvent e) {
+	                System.out.println("menuDeselected");
+
+	            }
+
+	            @Override
+	            public void menuCanceled(MenuEvent e) {
+	                System.out.println("menuCanceled");
+
+	            }
 	        });
-	        
 	        
 	        this.getContentPane().add(pan, BorderLayout.CENTER);
 	      
@@ -157,16 +177,15 @@ public class FenetreGraphAPD extends JFrame {
 	             }
 	    
 	         });*/
-	    	
-			FenetreGraphAPD ex= new FenetreGraphAPD(args);
-			/*MPI.Init(args);
-			int rank = MPI.COMM_WORLD.Rank();
+	    	MPI.Init(args);
+	    	int rank = MPI.COMM_WORLD.Rank();
 			int root = 0;
+			FenetreGraphAPD ex= new FenetreGraphAPD(args);
 			if(root==rank)
-			{*/
+			{
 				ex.setVisible(true);
-			/*}
-			MPI.Finalize();*/
+			}
+			MPI.Finalize();
 	
 	    }
 }
